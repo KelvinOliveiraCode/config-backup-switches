@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    # O projeto foi escrito e testado no Windows. Rodar a suite no mesmo SO
+    # evita que um pressuposto de plataforma passe aqui e quebre no Linux.
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Conferir encoding dos arquivos de texto
+        # Neste host ja surgiram ideogramas CJK acidentais em arquivo escrito
+        # com acento. Nao e erro de logica: e corrupcao de encoding, que muda o
+        # conteudo e passa despercebida. Falhar aqui e mais barato.
+        run: python tools/verificar_encoding.py
+
+      - name: O doc de normalizacao bate com o codigo
+        # A tabela de regras e a unica parte do projeto que o doc descreve por
+        # extensao. Se uma regra mudar e o texto nao acompanhar, o doc passa
+        # a prometer uma normalizacao que nao existe - e o leitor perde a
+        # confianca no resto.
+        run: python tools/verificar_doc.py
+
+      - name: Verificar que o pacote importa
+        run: python -c "import cfgbackup; print(cfgbackup.__version__)"
+
+      - name: Duas coletas sem mexer em nada nao acusam mudanca
+        # Primeira metade do criterio de aceite, e o teste que separa uma
+        # ferramenta de backup de uma ferramenta de ruido: se o uptime, a
+        # tabela MAC ou os contadores vazarem para a diff, o alerta passa a ser
+        # falso em toda coleta e o time silencia o sistema.
+        run: |
+          python -m cfgbackup coletar --equipamentos dados/equipamentos.yaml --saida saida/a
+          python -m cfgbackup coletar --equipamentos dados/equipamentos.yaml --saida saida/b --ticks 23
+          python -m cfgbackup comparar --anterior saida/a --atual saida/b
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "duas coletas sem alteracao acusaram mudanca inesperada"
+            exit 1
+          }
+
+      - name: A CLI de regras mostra a tabela de normalizacao
+        run: |
+          python -m cfgbackup regras
+          python -m cfgbackup regras --texto
+
+      - name: Rodar testes com cobertura
+        # fail_under=70 esta no pyproject.toml; cobertura abaixo derruba o build.
+        run: python -m pytest --cov=cfgbackup --cov-report=term-missing --cov-report=xml
+
+      - name: Conferir cobertura minima
+        run: python -m coverage report --fail-under=70
+
+      - name: Prova de aceite
+        # A prova verifica as quatro metades do criterio: sem mudanca sem tocar
+        # em nada, alerta na linha alterada fora do processo, ausencia de
+        # alerta na mudanca declarada, e historico com autor e data. E o que a
+        # suite nao cobre sozinha: ela prova que cada funcao funciona, nao que
+        # a ferramenta inteira se comporta como o README promete.
+        run: python tools/verificar_aceite.py
+
+      - name: O exemplo de historico esta atualizado
+        # O exemplo e gerado, mas vai para o repositorio para ser lido sem
+        # instalar nada. Se o codigo mudar e o arquivo nao acompanhar, o
+        # exemplo passa a descrever um comportamento que nao existe mais.
+        run: |
+          python tools/gerar_exemplo.py
+          git diff --exit-code -- exemplos/historico-exemplo.md

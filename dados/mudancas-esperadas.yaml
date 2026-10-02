@@ -1,0 +1,16 @@
+# Mudancas declaradas previamente.
+#
+# Uma mudanca declarada aqui NAO gera alerta. Sem ela, todo ajuste de
+# seguranca vira alarme e a ferramenta e silenciada em duas semanas.
+#
+# O campo `ate` e uma promessa com prazo: passado o dia, a mudanca volta a
+# ser drift, porque o que foi declarado nao foi mais feito a tempo. Escrever
+# o padrao entre aspas simples mantem o `\s` como regex, e nao como escape
+# do proprio YAML - com aspas duplas, o Python receberia `\\s` e a regra
+# nunca casaria com nada.
+
+SW-LAB-02:
+  - padrao: '^\s+exec-timeout'
+    motivo: reducao do timeout de sessao conforme politica de seguranca de 2026-01
+    autor: kelvin
+    ate: '2026-03-01'

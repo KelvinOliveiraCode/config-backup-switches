@@ -1,0 +1,21 @@
+# Equipamentos do laboratorio ficticio. Nenhum destes existe.
+#
+# A lista e a fonte da verdade do que existe: citar um hostname que nao esta
+# aqui e erro de inventario, e a ferramenta recusa em vez de inventar um
+# aparelho. Um backup que "criu" um equipamento que o cliente nao tem seria
+# pior do que um backup que falhou.
+
+- hostname: SW-LAB-01
+  tipo: switch
+  via: snmp
+  comunidade: LABCOMUNIDADE
+
+- hostname: SW-LAB-02
+  tipo: switch
+  via: http
+  comunidade: LABCOMUNIDADE
+
+- hostname: FW-LAB-01
+  tipo: firewall
+  via: http
+  comunidade: LABOUTRA

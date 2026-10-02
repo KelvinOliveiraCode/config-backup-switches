@@ -1,0 +1,7 @@
+# Dependencias de execucao. PyYAML e usada apenas para ler o inventario de
+# equipamentos em dados/equipamentos.yaml.
+PyYAML>=6.0
+
+# Dependencias de desenvolvimento.
+pytest>=7.4
+pytest-cov>=4.1

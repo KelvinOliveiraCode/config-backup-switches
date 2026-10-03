@@ -59,7 +59,7 @@ A dependência é só `PyYAML`, para ler o inventário; o diff usa `difflib` e a
 Para rodar um comando no host sem instalar nada, aponte o PYTHONPATH para `src`:
 
 ```powershell
-$env:PYTHONPATH="C:\Users\Kelvin\Desktop\portfolio-24\config-backup-switches\src"
+$env:PYTHONPATH="$PWD\src"
 python -m cfgbackup coletar --equipamentos dados/equipamentos.yaml --saida saida/
 ```
 
@@ -130,7 +130,7 @@ The only dependency is `PyYAML`, to read the inventory; the diff uses `difflib` 
 To run a command on the host without installing anything, set PYTHONPATH to `src`:
 
 ```powershell
-$env:PYTHONPATH="C:\Users\Kelvin\Desktop\portfolio-24\config-backup-switches\src"
+$env:PYTHONPATH="$PWD\src"
 python -m cfgbackup coletar --equipamentos dados/equipamentos.yaml --saida saida/
 ```
 

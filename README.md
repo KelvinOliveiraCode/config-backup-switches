@@ -1,3 +1,15 @@
+<div align="center">
+
+<p>
+  <img src="https://img.shields.io/badge/Python-3.10%2B-blue?style=flat-square&logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/tests-139%20passing-brightgreen?style=flat-square" alt="Tests">
+  <img src="https://img.shields.io/badge/coverage-94%25-brightgreen?style=flat-square" alt="Coverage">
+  <img src="https://img.shields.io/badge/license-MIT-yellow?style=flat-square" alt="License">
+  <img src="https://img.shields.io/badge/platform-Windows-blue?style=flat-square" alt="Windows">
+</p>
+
+</div>
+
 # config-backup-switches
 
 Coleta a configuração de equipamentos de rede fictícios, normaliza antes de comparar e classifica a mudança em três estados; só a terceira gera alerta.

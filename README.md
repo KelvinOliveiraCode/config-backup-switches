@@ -1,118 +1,100 @@
 # config-backup-switches
 
-<div align="center">
-
 [English](README.en.md) · **Português (Brasil)**
 
-</div>
-
-[![Python 3](https://img.shields.io/badge/Python-3.x-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/) [![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?style=flat-square&logo=scikit-learn)](https://scikit-learn.org/) [![pandas](https://img.shields.io/badge/pandas-150458?style=flat-square&logo=pandas)](https://pandas.pydata.org/) [![pytest](https://img.shields.io/badge/pytest-0A9EDC?style=flat-square&logo=pytest)](https://docs.pytest.org/) [![MIT License](https://img.shields.io/badge/License-MIT-f4c430?style=flat-square)](LICENSE)
-
-### Backup de configuracao de switches com deteccao por hash e normalizacao antes de comparar
-
----
+[![Python 3](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)](#) [![PyYAML](https://img.shields.io/badge/PyYAML-%C3%BAnica%20dep-3776AB?style=flat-square)](#) [![pytest](https://img.shields.io/badge/pytest-139%20testes-0A9EDC?style=flat-square&logo=pytest)](#) [![MIT License](https://img.shields.io/badge/License-MIT-f4c430?style=flat-square)](LICENSE)
 
 ## O que é
 
-Backup de configuracao de switches com deteccao por hash e normalizacao antes de comparar
+**Backup de configuração de switches** com **detecção por hash** e **normalização antes de comparar**: coleta o estado configurado dos equipamentos (lista em YAML), gera um histórico versionado, **normaliza** as configs e **compara** coletas apontando diffs e mudanças esperadas. É um laboratório educacional de automação de redes em Python.
 
----
+## Status
 
-## Início Rápido
+Laboratório educacional funcional e testado (139 testes).
 
-```bash
-# Clone e entre
-git clone https://github.com/KelvinOliveiraCode/<repo>.git
-cd <repo>
+## Funcionalidades
 
-# Instale dependências
-# Nenhum requirements.txt detectado
+- **Coleta** (`coletor.py`, `simulador.py`): lê a lista de equipamentos (YAML), coleta a config e monta o histórico.
+- **Normalização** (`normalizador.py`): padroniza linhas antes de comparar; tabela de regras.
+- **Detecção por hash**: comparação de configs por hash para detectar mudança.
+- **Histórico** (`historico.py`): mantém versões das configs coletadas.
+- **Diff** (`diferenca.py`): aponta diferenças entre coletas, com mudanças esperadas (expiradas por data).
+- **CLI**: `cfgbackup coletar --equipamentos ... --saida ...`, `comparar`, `regras` (tabela de normalização).
 
-# Execute o projeto
-python main.py
+## Arquitetura
 
-# Execute os testes
-pytest
+Pacote `cfgbackup` com `coletor` (coleta), `normalizador` (normaliza), `diferenca`/`historico` (compara/versiona) e `simulador` (fonte de config), orquestrados pelo CLI.
+
+```mermaid
+flowchart LR
+    YEQUIP[equipamentos.yaml] --> COL[coletor - coleta config]
+    COL --> NORM[normalizador - normaliza]
+    NORM --> HIST[historico - hash/versões]
+    NORM --> DIF[diferenca - diffs/mudanças esperadas]
+    CLI[cfgbackup coletar/comparar/regras] --> COL
 ```
 
-## Como funciona
+## Stack
 
-Estrutura limpa e modular com separação de responsabilidades.
+- Python ≥ 3.10
+- PyYAML ≥ 6.0 (única dependência)
+- pytest (dev)
 
----
+## Estrutura do repositório
 
-## Capacidades
+```
+config-backup-switches/
+├── pyproject.toml · BRIEF.md
+├── src/cfgbackup/
+│   ├── coletor.py · simulador.py · normalizador.py
+│   ├── historico.py · diferenca.py · cli.py
+├── dados/equipamentos.yaml
+├── tests/             # 139 testes
+└── LICENSE            # MIT
+```
 
-| Capacidade | Descrição |
-|------------|-------------|
-| Carregamento de Dados | Auto-download do TensorFlow creditcard.csv (284k transações) com cache local |
-| EDA e Visualização | Distribuição de classes, histogramas de Amount, heatmaps de correlação (matplotlib/seaborn) |
-| Pré-processamento | RobustScaler em Amount/Time, split estratificado, remoção de duplicatas |
-| Balanceamento | SMOTE oversampling (fallback: class_weight="balanced") |
-| Modelagem | LogisticRegression, RandomForest, ExtraTrees com RandomizedSearchCV (StratifiedKFold) |
-| Métricas | Accuracy, Precision, Recall, F1, ROC AUC, Specificity, Confusion Matrix |
-| Seleção | Score ponderado: Recall 40% + F1 30% + Precision 20% + Accuracy 10% |
-| Persistência | Serialização joblib para modelo, scaler e resultados completos |
+## Pré-requisitos e instalação
 
+Python ≥ 3.10.
 
----
+```bash
+pip install -e .
+```
 
+## Como executar
 
+```bash
+cfgbackup coletar --equipamentos dados/equipamentos.yaml --saida saida/   # coleta + histórico
+cfgbackup comparar --anterior saida/a --atual saida/b --esperadas mudancas.yaml   # diffs
+cfgbackup regras                                                          # tabela de normalização
+```
 
----
+## Testes e qualidade
 
-## Perguntas Frequentes
+Comando real (verificado pelo agente):
 
-<details>
-<summary><strong>O que é este projeto?</strong></summary>
+```bash
+PYTHONPATH=src python -m pytest tests/
+# 139 passed
+```
 
-Um estudo/projeto em Python demonstrando conceitos fundamentais.
+## Decisões técnicas e trade-offs
 
-</details>
+- **Normalizar antes de comparar**: evita falsos diffs por diferenças de formatação; o custo é uma tabela de regras a manter.
+- **Detecção por hash**: comparação rápida e precisa de mudança.
+- **Mudanças esperadas com validade**: diferencia drift de mudança planejada/declarada.
 
-<details>
-<summary><strong>Como executar?</strong></summary>
+## Limitações conhecidas e roadmap
 
-Veja [Início Rápido](#início-rápido) para comandos copiáveis.
+- As configs vêm de um simulador (não de switches reais via SSH/API).
+- A normalização cobre as regras definidas; configs fora do padrão podem gerar diffs espúrios.
 
-</details>
+## Processo de desenvolvimento
 
-<details>
-<summary><strong>Há testes?</strong></summary>
+Projeto individual de Kelvin Oliveira, construído com agentes de IA orquestrados e revisado pelo autor. O pipeline de backup/normalização e a revisão são do autor.
 
-Nenhum teste automatizado neste repositório.
+## Licença e autor
 
-</details>
+MIT — Copyright (c) 2026 Kelvin Rebelo de Oliveira.
 
-<details>
-<summary><strong>Posso usar em produção?</strong></summary>
-
-Este é um **projeto de estudo/portfólio**. Revise e endureça (auth, persistência, monitoramento, etc.) antes de usar em produção.
-
-</details>
-
-
-
----
-
-## Documentação
-
-- **Código-Fonte** ,  Navegue pelo diretório `src/` para detalhes de implementação
-- **Referência da API** ,  Docstrings inline + type hints
-- **Diagrama de Arquitetura** ,  Veja [architecture.mermaid](docs/architecture.mermaid) (se presente)
-- **Changelog** ,  [CHANGELOG.md](CHANGELOG.md) (se presente)
-- **Contribuindo** ,  [CONTRIBUTING.md](CONTRIBUTING.md) (se presente)
-
-## Licença
-
-[MIT](LICENSE) ,  Kelvin Oliveira
-
----
-
-<div align="center">
-
-**Construído com** · Python 3 + scikit-learn + pandas
-
-**Autor** · [Kelvin Oliveira](https://github.com/KelvinOliveiraCode) · [Portfolio](https://kelvinoliveiracode.github.io/portfolio/)
-
-</div>
+**Autor**: [Kelvin Oliveira](https://github.com/KelvinOliveiraCode) · [Portfólio](https://kelvinoliveiracode.github.io/portfolio/)
